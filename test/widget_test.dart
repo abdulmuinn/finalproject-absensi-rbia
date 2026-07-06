@@ -9,22 +9,39 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:absensi_rbia/main.dart';
+import 'package:absensi_rbia/repository/attendance_repository.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('Attendance app smoke test', (WidgetTester tester) async {
+    final repository = AttendanceRepository();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    await tester.pumpWidget(AttendanceApp(repository: repository));
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+    expect(find.text('Absensi RBIA'), findsOneWidget);
+    expect(find.text('Kelas'), findsOneWidget);
+    expect(find.text('Belum ada kelas'), findsOneWidget);
+  });
+
+  testWidgets('can add class from homepage form', (WidgetTester tester) async {
+    final repository = AttendanceRepository();
+
+    await tester.pumpWidget(AttendanceApp(repository: repository));
+
+    await tester.tap(find.text('Tambah\nKelas'));
     await tester.pump();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('Kelas Baru'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField).at(0), '1a');
+    await tester.enterText(find.byType(TextField).at(1), 'Semester genap');
+    await tester.pump();
+
+    await tester.ensureVisible(find.text('Simpan'));
+    await tester.tap(find.text('Simpan'));
+    await tester.pump();
+
+    expect(find.text('1a'), findsOneWidget);
+    expect(find.text('Semester genap'), findsOneWidget);
+    expect(find.text('Belum ada kelas'), findsNothing);
   });
 }
