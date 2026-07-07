@@ -40,7 +40,7 @@ class _AttendanceAppState extends State<AttendanceApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Absensi RBIA',
+      title: 'Absensi App',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(

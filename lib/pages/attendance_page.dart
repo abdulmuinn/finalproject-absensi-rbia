@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'class_detail_page.dart'; // Import halaman detail kelas
+import 'materials_page.dart'; // Import halaman catatan materi
 
 /// Halaman utama aplikasi dengan tampilan daftar kelas.
 class AttendancePage extends StatefulWidget {
@@ -132,7 +134,7 @@ class _AttendancePageState extends State<AttendancePage> {
         );
       } else {
         final index = _classes.indexWhere(
-          (classRoom) => classRoom.id == editingClassId,
+              (classRoom) => classRoom.id == editingClassId,
         );
         if (index != -1) {
           _classes[index] = _classes[index].copyWith(
@@ -653,69 +655,89 @@ class _ClassRoomCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(18, 17, 16, 17),
-      decoration: BoxDecoration(
-        color: surfaceColor,
-        border: Border.all(color: dividerColor),
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    // Menggunakan Material agar efek ripple (animasi klik) berfungsi dan terlihat
+    return Material(
+      color: surfaceColor,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
+        side: BorderSide(color: dividerColor),
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 58,
-            height: 58,
-            decoration: BoxDecoration(
-              color: brandColor.withValues(alpha: 0.12),
-              shape: BoxShape.circle,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () {
+          // Navigasi ke ClassDetailPage
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ClassDetailPage(
+                className: classRoom.name,
+                isDarkMode: isDarkMode,
+              ),
             ),
-            child: Icon(Icons.school_outlined, color: brandColor, size: 30),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  classRoom.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: textColor,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                  ),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(18, 17, 16, 17),
+          child: Row(
+            children: [
+              Container(
+                width: 58,
+                height: 58,
+                decoration: BoxDecoration(
+                  color: brandColor.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
                 ),
-                if (classRoom.description.isNotEmpty) ...[
-                  const SizedBox(height: 6),
-                  Text(
-                    classRoom.description,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: mutedTextColor,
-                      fontSize: 17,
-                      height: 1.25,
-                      fontWeight: FontWeight.w500,
+                child: Icon(Icons.school_outlined, color: brandColor, size: 30),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      classRoom.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: textColor,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
-                ],
-              ],
-            ),
+                    if (classRoom.description.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        classRoom.description,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: mutedTextColor,
+                          fontSize: 17,
+                          height: 1.25,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                tooltip: 'Edit kelas',
+                onPressed: onEdit,
+                icon: Icon(Icons.edit_outlined, color: mutedTextColor, size: 27),
+              ),
+              IconButton(
+                tooltip: 'Hapus kelas',
+                onPressed: onDelete,
+                icon: Icon(Icons.delete_outline_rounded, color: mutedTextColor),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
-          IconButton(
-            tooltip: 'Edit kelas',
-            onPressed: onEdit,
-            icon: Icon(Icons.edit_outlined, color: mutedTextColor, size: 27),
-          ),
-          IconButton(
-            tooltip: 'Hapus kelas',
-            onPressed: onDelete,
-            icon: Icon(Icons.delete_outline_rounded, color: mutedTextColor),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -759,12 +781,28 @@ class _HomeDrawer extends StatelessWidget {
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 26, 20, 20),
-                children: const [
+                children: [
                   _DrawerItem(
                     icon: Icons.grid_view_rounded,
                     title: 'Kelas',
                     subtitle: 'Kelola kelas & siswa',
                     isActive: true,
+                  ),
+                  SizedBox(height: 18),
+                  _DrawerItem(
+                    icon: Icons.menu_book_rounded,
+                    title: 'Materi',
+                    subtitle: 'Catatan materi pembelajaran',
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => MaterialsPage(
+                            isDarkMode: isDarkMode,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                   SizedBox(height: 18),
                   _DrawerItem(
@@ -911,12 +949,14 @@ class _DrawerItem extends StatelessWidget {
   final String title;
   final String subtitle;
   final bool isActive;
+  final VoidCallback? onTap;
 
   const _DrawerItem({
     required this.icon,
     required this.title,
     required this.subtitle,
     this.isActive = false,
+    this.onTap,
   });
 
   @override
@@ -937,7 +977,7 @@ class _DrawerItem extends StatelessWidget {
         ? const Color(0xFF1E3834)
         : const Color(0xFFE7F7F5);
 
-    return Container(
+    final content = Container(
       height: 84,
       padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
@@ -979,6 +1019,17 @@ class _DrawerItem extends StatelessWidget {
           ),
         ],
       ),
+    );
+
+    // Bungkus dengan efek ripple hanya saat item dapat ditekan.
+    if (onTap == null) return content;
+
+    final handler = onTap!;
+    return Material(
+      color: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(onTap: handler, child: content),
     );
   }
 }
